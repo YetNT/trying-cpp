@@ -1,10 +1,10 @@
+#include <array>
+#include <chrono> // For std::chrono::seconds
+#include <cmath>
 #include <iostream>
 #include <string>
-#include <cmath>
-#include <array>
-#include <iostream>
 #include <thread> // For std::this_thread::sleep_for
-#include <chrono> // For std::chrono::seconds
+
 #include "ProgressBar.cpp"
 
 int waitTime = 4;
@@ -16,10 +16,7 @@ void wait(int seconds)
 }
 
 // Helper function to clear the screen.
-void clearScreen()
-{
-    std::cout << "\033[2J\033[1;1H";
-}
+void clearScreen() { std::cout << "\033[2J\033[1;1H"; }
 
 // Driving result
 struct driveResult
@@ -34,10 +31,7 @@ class Person
 public:
     double money = 10000; // amount of money they got.
     std::string name;     // Name of the person
-    Person(std::string nameOfPerson)
-    {
-        name = nameOfPerson;
-    }
+    Person(std::string nameOfPerson) { name = nameOfPerson; }
 };
 
 class Car
@@ -45,52 +39,35 @@ class Car
 public:
     std::string name;        // Name of the car
     int speed;               // The speed of the car
-    int maxSped = 10000000;  // The maximum speed of the car
+    int maxSpeed = 10000000; // The maximum speed of the car
     double price;            // Price of the car
     int fuelEfficiency = 10; // The fuel efficiency of the car (l/km)
-    int fuelTank = 100;      // The fuel capacity of the car
-    int fuelTankMax = 100;
-    double upgradePrice;          // The upgrade price of the car
-    int totalDistanceCovered = 0; // The total distance covered by the car
-    int fuelPrice;                // The price of the car that is fuel
-    double fixPrice;              // The price of the car that
-    bool isDamaged = false;       // Whether the car is damaged after being used.
+    int defaultFuelEfficiency =
+        fuelEfficiency;            // The default fuel efficiency of the car
+    int fuelTank = 100;            // The fuel capacity of the car
+    int fuelTankMax = 100;         // Fuel tank's maximum capacity
+    double tankUpgradePrice;       // The upgrade price of the car
+    double speedUpgradePrice;      // The speed upgrade price of the car
+    double efficiencyUpgradePrice; // The efficiency upgrade price of the car
+    int totalDistanceCovered = 0;  // The total distance covered by the car
+    int fuelPrice;                 // The price of the car that is fuel
+    double fixPrice;               // The price of the car that
+    bool isDamaged = false;        // Whether the car is damaged after being used.
     Car(std::string carName, int carSpeed, double priceOfCar = 100)
     {
         name = carName;
         speed = carSpeed;
         price = priceOfCar;
-        upgradePrice = price * 0.1;
+        tankUpgradePrice = price * 0.1;
+        speedUpgradePrice = price * 0.05;
+        efficiencyUpgradePrice =
+            price * 0.02;         // Price of efficiency upgrade per unit distance
         fuelPrice = price * 0.05; // Price of fuel per unit distance
         fixPrice = price * 0.01;  // Price of fixing the car
     }
 
     double upgradeCar(int money)
     {
-        auto handleUpgrade = []() -> char
-        {
-            std::cout
-                << "What would you like to upgrade?" << std::endl;
-            std::cout << "(s) " << 5 << " Speed" << std::endl;
-            std::cout << "(e) " << 5 << "Fuel efficiency" << std::endl;
-            std::cout << "(t) " << 5 << "Fuel tank capacity" << std::endl;
-            std::cout << "(anything) Cancel" << std::endl;
-            char choice;
-            std::cin >> choice;
-            return choice;
-        };
-
-        if (money < upgradePrice)
-        {
-            std::cout << "Not enough money to upgrade the car." << std::endl;
-            return -1;
-        }
-
-        money -= upgradePrice;
-        upgradePrice *= 1.1;
-        fuelTankMax += 10;
-        std::cout << name << " upgraded to a more fuel-efficient car. Fuel tank capacity increased by 10." << std::endl;
-        return upgradePrice;
     }
 
     driveResult drive()
@@ -99,7 +76,7 @@ public:
         if (isDamaged)
         {
             std::cout << "Your car is damaged bro. You cannot drive." << std::endl;
-            return {0, fuelTank, true};
+            return { 0, fuelTank, true };
         }
         int distance = 0;
         while (fuelTank != 0)
@@ -107,17 +84,20 @@ public:
             clearScreen();
             fuelTank -= fuelEfficiency;
             distance += speed;
-            std::cout << "Distance covered: " << distance << ", Fuel remaining: " << fuelTank << std::endl;
+            std::cout << "Distance covered: " << distance
+                << ", Fuel remaining: " << fuelTank << std::endl;
             wait(1);
         }
 
         clearScreen();
 
         bool carDamaged = rand() % 2 ? true : false;
-        std::cout << "Not enough fuel to cover the remaining distance." << std::endl;
-        std::cout << (carDamaged ? "Damn ur car damaged" : "ur car aint damaged.") << std::endl;
+        std::cout << "Not enough fuel to cover the remaining distance."
+            << std::endl;
+        std::cout << (carDamaged ? "Damn ur car damaged" : "ur car aint damaged.")
+            << std::endl;
         isDamaged = carDamaged;
-        return {distance, fuelTank, carDamaged};
+        return { distance, fuelTank, carDamaged };
     }
 
     void carInfo()
@@ -126,9 +106,10 @@ public:
         std::cout << "Speed: " << speed << " km/h" << std::endl;
         std::cout << "Price: R" << price << std::endl;
         std::cout << "Fuel efficiency: " << fuelEfficiency << " l/s" << std::endl;
-        std::cout << "Fuel tank capacity: " << fuelTank << "/" << fuelTankMax << std::endl;
-        std::cout << "Upgrade price: R" << upgradePrice << std::endl;
-        std::cout << "Total distance covered so far: " << totalDistanceCovered << " km" << std::endl;
+        std::cout << "Fuel tank capacity: " << fuelTank << "/" << fuelTankMax
+            << std::endl;
+        std::cout << "Total distance covered so far: " << totalDistanceCovered
+            << " km" << std::endl;
     }
 
     int buyFuel(int money)
@@ -147,7 +128,8 @@ public:
 
         money -= fuelPrice;
         fuelTank = std::min(fuelTank + 100, fuelTankMax);
-        std::cout << "You bought fuel. Fuel tank capacity increased by 100." << std::endl;
+        std::cout << "You bought fuel. Fuel tank capacity increased by 100."
+            << std::endl;
 
         return fuelPrice;
     }
@@ -176,8 +158,9 @@ public:
 
 void showCommands(double money)
 {
-    std::cout << "Type any one of these to do it! You have R" << money << std::endl
-              << std::endl;
+    std::cout << "Type any one of these to do it! You have R" << money
+        << std::endl
+        << std::endl;
     std::cout << "(d) - Drive you bad boy" << std::endl;
     std::cout << "(i) - Information on your car" << std::endl;
     std::cout << "(u) - Upgrade the car" << std::endl;
@@ -189,14 +172,14 @@ void showCommands(double money)
 
 int main()
 {
-
     clearScreen();
     std::cout << "Your name?" << std::endl;
     std::string name;
     std::cin >> name;
     Person person(name);
     clearScreen();
-    std::cout << "Ight cool " << person.name << "! You start the game with R" << person.money << std::endl;
+    std::cout << "Ight cool " << person.name << "! You start the game with R"
+        << person.money << std::endl;
 
     std::cout << std::endl;
 
@@ -228,59 +211,59 @@ int main()
         std::cin >> command;
         switch (command)
         {
-        case 'd':
-        {
-            driveResult result = car.drive();
-            person.money += result.distance * car.fuelPrice;
-            car.totalDistanceCovered += result.distance;
-            if (result.carDamaged)
-            {
-                person.money -= car.price * 0.1;
-            };
-            break;
-        }
-        case 'i':
-        {
-            car.carInfo();
-            break;
-        }
-        case 'u':
-        {
-            double upgradePrice = car.upgradeCar(person.money);
-            if (upgradePrice > 0)
-            {
-                person.money -= upgradePrice;
-            }
-            break;
-        }
-        case 'b':
-        {
-            int fuelPrice = car.buyFuel(person.money);
-            if (fuelPrice > 0)
-            {
-                person.money -= fuelPrice;
-            }
-            break;
-        }
-        case 'c':
-        {
-            showCommands(person.money);
-            break;
-        }
-        case 'f':
-        {
-            int fixPrice = car.fixCar(person.money);
-            if (fixPrice > 0)
-            {
-                person.money -= fixPrice;
-            }
-            break;
-        }
-        case 'e':
-        {
-            std::cout << "Thanks for playing! Your final money is R" << person.money;
-            exit = true;
-        }
+            case 'd':
+                {
+                    driveResult result = car.drive();
+                    person.money += result.distance * car.fuelPrice;
+                    car.totalDistanceCovered += result.distance;
+                    if (result.carDamaged)
+                    {
+                        person.money -= car.price * 0.1;
+                    };
+                    break;
+                }
+            case 'i':
+                {
+                    car.carInfo();
+                    break;
+                }
+            case 'u':
+                {
+                    double upgradePrice = car.upgradeCar(person.money);
+                    if (upgradePrice > 0)
+                    {
+                        person.money -= upgradePrice;
+                    }
+                    break;
+                }
+            case 'b':
+                {
+                    int fuelPrice = car.buyFuel(person.money);
+                    if (fuelPrice > 0)
+                    {
+                        person.money -= fuelPrice;
+                    }
+                    break;
+                }
+            case 'c':
+                {
+                    showCommands(person.money);
+                    break;
+                }
+            case 'f':
+                {
+                    int fixPrice = car.fixCar(person.money);
+                    if (fixPrice > 0)
+                    {
+                        person.money -= fixPrice;
+                    }
+                    break;
+                }
+            case 'e':
+                {
+                    std::cout << "Thanks for playing! Your final money is R" << person.money;
+                    exit = true;
+                }
         };
 
         wait(waitTime);
