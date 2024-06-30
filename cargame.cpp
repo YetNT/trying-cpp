@@ -5,7 +5,7 @@
 #include <string>
 #include <thread> // For std::this_thread::sleep_for
 
-int waitTime = 4;
+int waitTime = 4000;
 
 // Helper function to wait a few seconds.
 void wait(int milliseconds)
@@ -22,12 +22,13 @@ struct driveResult
     int distance;     // The distance covered by the car
     int fuelConsumed; // The amount of fuel consumed by the car
     bool carDamaged;  // Whether the car is damaged after being used.
+    int amountEarned; // The amount of money earned on the trip.
 };
 
 class Person
 {
 public:
-    double money = 10000; // amount of money they got.
+    double money = 1000; // amount of money they got.
     std::string name;     // Name of the person
     Person(std::string nameOfPerson) { name = nameOfPerson; }
 };
@@ -61,16 +62,18 @@ public:
             price * 0.02;         // Price of efficiency upgrade per unit distance
         fuelPrice = price * 0.05; // Price of fuel per unit distance
         fixPrice = price * 0.01;  // Price of fixing the car
+        std::srand(std::time(0)); // Seed the random number generator
     }
 
     double upgradeCar(int money)
     {
+        double finalPrice = 0;
         clearScreen();
         char choice = 's';
         // Holy crap this shi is getting crazy for a terminal game where im learning
-        auto handleUpgrade = [this]() -> char
+        auto handleUpgrade = [this](int money, double finalPrice) -> char
             {
-                std::cout << "Type a letter to upgrade that:" << std::endl
+                std::cout << "Type a letter to upgrade that: (You have R" << money - finalPrice << ")" << std::endl
                     << std::endl;
 
                 std::cout << "(s) [R" << speedUpgradePrice << "] Speed\t\t\t" << speed << "km\\s"
@@ -78,7 +81,7 @@ public:
 
                 std::cout << "(e) [R" << efficiencyUpgradePrice
                     << "] Fuel efficiency\t" << fuelEfficiency << " litres per kilometre"
-                    << (fuelEfficiency >= 2 ? "[MAX REACHED]\n" : "\n");
+                    << (fuelEfficiency <= 2 ? "[MAX REACHED]\n" : "\n");
 
                 std::cout << "(t) [R" << tankUpgradePrice
                     << "] Fuel tank capacity\t" << fuelTank << "\\" << fuelTankMax << std::endl;
@@ -89,29 +92,32 @@ public:
                 std::cin >> choice;
                 return choice;
             };
-        double finalPrice = 0;
 
         while (choice == 's' || choice == 'e' || choice == 't')
         {
             clearScreen();
-            choice = handleUpgrade();
+            choice = handleUpgrade(money, finalPrice);
             switch (choice)
             {
                 case 's':
                     {
-                        if (money < speedUpgradePrice) {
+                        if ((money < speedUpgradePrice) || (money - speedUpgradePrice) < 0) {
                             std::cout << "Not enough money to upgrade the speed of the car." << std::endl;
                             break;
                         }
+                        if (speed >= speedUpgradePrice) {
+                            std::cout << "The car's speed cannot be increased even more." << std::endl;
+                            break;
+                        }
                         speed += 10;
-                        finalPrice = speedUpgradePrice;
+                        finalPrice += speedUpgradePrice;
                         money -= speedUpgradePrice;
                         speedUpgradePrice += (speedUpgradePrice * 0.5);
                         break;
                     }
                 case 'e':
                     {
-                        if (money < efficiencyUpgradePrice) {
+                        if ((money < efficiencyUpgradePrice) || (money - efficiencyUpgradePrice) < 0) {
                             std::cout << "Not enough money to upgrade the fuel efficiency of the car." << std::endl;
                             break;
                         }
@@ -120,23 +126,23 @@ public:
                             break;
                         }
                         fuelEfficiency -= 1;
-                        finalPrice = efficiencyUpgradePrice;
+                        finalPrice += efficiencyUpgradePrice;
                         money -= efficiencyUpgradePrice;
                         efficiencyUpgradePrice += (efficiencyUpgradePrice * 0.7);
                         break;
                     }
                 case 't':
                     {
-                        if (money < tankUpgradePrice) {
+                        if ((money < tankUpgradePrice) || (money - tankUpgradePrice) < 0) {
                             std::cout << "Not enough money to upgrade the fuel tank capacity of the car." << std::endl;
                             break;
                         }
-                        if (fuelTank >= fuelTankMax) {
+                        if (fuelTankMax >= 1000) {
                             std::cout << "The car's fuel tank cannot be increased even more." << std::endl;
                             break;
                         }
                         fuelTankMax += 10;
-                        finalPrice = tankUpgradePrice;
+                        finalPrice += tankUpgradePrice;
                         money -= tankUpgradePrice;
                         tankUpgradePrice += (tankUpgradePrice * 0.4);
                         break;
@@ -154,11 +160,16 @@ public:
 
     driveResult drive()
     {
+        int amountEarned = 0;
         clearScreen();
+        if (fuelTank <= 0) {
+            std::cout << "Not enough fuel to drive." << std::endl;
+            return { 0, 0, true, amountEarned };
+        }
         if (isDamaged)
         {
             std::cout << "Your car is damaged bro. You cannot drive." << std::endl;
-            return { 0, fuelTank, true };
+            return { 0, fuelTank, true, amountEarned };
         }
         int distance = 0;
         while (fuelTank > 0)
@@ -167,8 +178,16 @@ public:
             fuelTank -= fuelEfficiency;
             distance += speed;
             std::cout << "Distance covered: " << distance
-                << ", Fuel remaining: " << fuelTank << std::endl;
-            wait(1);
+                << ", Fuel remaining: " << fuelTank << std::endl << std::endl;
+            if ((std::rand() % 3 + 1) == 2) {
+                int rand = std::rand() % 401 + 100; // Random amount between 100 and 500
+                amountEarned += rand;
+                std::cout << "Money Earned: R" << rand << std::endl;
+                wait(1200);
+            }
+            else {
+                wait(700);
+            }
         }
 
         clearScreen();
@@ -179,7 +198,7 @@ public:
         std::cout << (carDamaged ? "Damn ur car damaged" : "ur car aint damaged.")
             << std::endl;
         isDamaged = carDamaged;
-        return { distance, fuelTank, carDamaged };
+        return { distance, fuelTank, carDamaged, amountEarned };
     }
 
     void carInfo()
@@ -275,8 +294,9 @@ int main()
 
     std::cout << "Okay, that's an odd car." << std::endl;
     car.carInfo();
-    wait(4);
+    wait(waitTime);
     std::cout << "Anyways, game starts now.";
+    wait(waitTime / 2);
 
     clearScreen();
 
@@ -295,10 +315,11 @@ int main()
                     driveResult result = car.drive();
                     person.money += result.distance * car.fuelPrice;
                     car.totalDistanceCovered += result.distance;
-                    if (result.carDamaged)
-                    {
-                        person.money -= car.price * 0.1;
-                    };
+                    person.money += result.amountEarned;
+                    // if (result.carDamaged)
+                    // {
+                    //     person.money -= car.price * 0.1;
+                    // };
                     break;
                 }
             case 'i':
@@ -345,7 +366,7 @@ int main()
                 }
         };
 
-        wait(waitTime);
+        wait(waitTime / 2);
     }
     return 0;
 };
