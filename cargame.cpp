@@ -8,9 +8,9 @@
 int waitTime = 4;
 
 // Helper function to wait a few seconds.
-void wait(int seconds)
+void wait(int milliseconds)
 {
-    std::this_thread::sleep_for(std::chrono::seconds(seconds));
+    std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
 }
 
 // Helper function to clear the screen.
