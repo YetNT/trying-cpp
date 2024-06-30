@@ -39,7 +39,7 @@ public:
     int speed = 1;               // The speed of the car
     int maxSpeed = 10000000; // The maximum speed of the car
     double price;            // Price of the car
-    int fuelEfficiency = 10; // The fuel efficiency of the car (l/km)
+    int fuelEfficiency = 20; // The fuel efficiency of the car (l/km)
     int defaultFuelEfficiency =
         fuelEfficiency;            // The default fuel efficiency of the car
     int fuelTank = 100;            // The fuel capacity of the car
@@ -77,7 +77,8 @@ public:
                     << (speed >= maxSpeed ? "[MAX REACHED]\n" : "\n");
 
                 std::cout << "(e) [R" << efficiencyUpgradePrice
-                    << "] Fuel efficiency\t" << fuelEfficiency << " litres per kilometre" << std::endl;
+                    << "] Fuel efficiency\t" << fuelEfficiency << " litres per kilometre"
+                    << (fuelEfficiency >= 2 ? "[MAX REACHED]\n" : "\n");
 
                 std::cout << "(t) [R" << tankUpgradePrice
                     << "] Fuel tank capacity\t" << fuelTank << "\\" << fuelTankMax << std::endl;
@@ -114,7 +115,7 @@ public:
                             std::cout << "Not enough money to upgrade the fuel efficiency of the car." << std::endl;
                             break;
                         }
-                        if (fuelEfficiency == 0) {
+                        if (fuelEfficiency == 2) {
                             std::cout << "The car's fuel efficiency cannot be lowered even more." << std::endl;
                             break;
                         }
@@ -128,6 +129,10 @@ public:
                     {
                         if (money < tankUpgradePrice) {
                             std::cout << "Not enough money to upgrade the fuel tank capacity of the car." << std::endl;
+                            break;
+                        }
+                        if (fuelTank >= fuelTankMax) {
+                            std::cout << "The car's fuel tank cannot be increased even more." << std::endl;
                             break;
                         }
                         fuelTankMax += 10;
